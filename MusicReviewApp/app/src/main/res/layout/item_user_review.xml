@@ -38,7 +38,7 @@
                 android:id="@+id/album_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Album Title"
+                android:text="@string/album_title"
                 android:textColor="#212121"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -47,7 +47,7 @@
                 android:id="@+id/album_year"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="2025"
+                android:text="@string/_2025"
                 android:textColor="#757575"
                 android:textSize="14sp"
                 android:layout_marginTop="2dp" />
@@ -112,7 +112,7 @@
         android:id="@+id/review_content"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Review content goes here..."
+        android:text="@string/review_content_goes_here"
         android:textColor="#424242"
         android:textSize="14sp"
         android:lineSpacingExtra="4dp"
@@ -123,7 +123,7 @@
         android:id="@+id/review_timestamp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="2 days ago"
+        android:text="@string/_2_days_ago"
         android:textColor="#9E9E9E"
         android:textSize="12sp" />
 

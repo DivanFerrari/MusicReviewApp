@@ -173,6 +173,12 @@ class HomeFragment : Fragment() {
 
     // Update reviews content with real data
     private fun updateReviewsContent(reviews: List<Review>) {
+        // Check if fragment is still attached
+        if (!isAdded || isDetached) {
+            Log.d("HomeFragment", "Fragment not attached, skipping updateReviewsContent")
+            return
+        }
+
         val reviewsContainer = reviewsContent.findViewById<LinearLayout>(R.id.reviews_container)
         reviewsContainer?.removeAllViews()
 
@@ -210,13 +216,19 @@ class HomeFragment : Fragment() {
 
     // Create review view with real data
     private fun createReviewView(review: Review): View {
+        // Check if fragment is still attached
+        if (!isAdded || isDetached) {
+            Log.d("HomeFragment", "Fragment not attached, skipping createReviewView")
+            return View(requireContext()) // Return empty view as fallback
+        }
+
         val inflater = LayoutInflater.from(requireContext())
         val reviewView = inflater.inflate(R.layout.layout_music_review_item, null)
 
         // Album cover
         val albumCover = reviewView.findViewById<ImageView>(R.id.album_cover)
         if (!review.musicCoverUrl.isNullOrEmpty()) {
-            Glide.with(requireContext())
+            Glide.with(this) // Use fragment context for proper lifecycle
                 .load(review.musicCoverUrl)
                 .placeholder(R.drawable.album_placeholder)
                 .error(R.drawable.album_placeholder)
@@ -267,6 +279,12 @@ class HomeFragment : Fragment() {
 
     // Update lists content with real data
     private fun updateListsContent(lists: List<UserList>) {
+        // Check if fragment is still attached
+        if (!isAdded || isDetached) {
+            Log.d("HomeFragment", "Fragment not attached, skipping updateListsContent")
+            return
+        }
+
         // Since your lists layout uses hardcoded content, we'll create dynamic views
         listsContent.removeAllViews()
 
@@ -289,6 +307,12 @@ class HomeFragment : Fragment() {
     }
 
     private fun createListView(list: UserList): View {
+        // Check if fragment is still attached
+        if (!isAdded || isDetached) {
+            Log.d("HomeFragment", "Fragment not attached, skipping createListView")
+            return View(requireContext()) // Return empty view as fallback
+        }
+
         val inflater = LayoutInflater.from(requireContext())
         val listView = inflater.inflate(R.layout.layout_list_item, null)
 
@@ -312,7 +336,7 @@ class HomeFragment : Fragment() {
                 background = resources.getDrawable(R.drawable.rounded_album, null)
 
                 if (album.coverImage.isNotEmpty()) {
-                    Glide.with(requireContext())
+                    Glide.with(this@HomeFragment) // Use fragment context
                         .load(album.coverImage)
                         .placeholder(R.drawable.album_placeholder)
                         .error(R.drawable.album_placeholder)
@@ -346,17 +370,29 @@ class HomeFragment : Fragment() {
         findNavController().navigate(R.id.action_homeFragment_to_listDetailFragment, bundle)
     }
 
-    // Existing methods from your original HomeFragment
+    // FIXED: Added proper lifecycle checks to all network callbacks
     private fun loadSpotifyData() {
         Log.d("HomeFragment", "Starting to load Spotify data...")
 
         spotifyApiService.getPopularThisWeek(object : SpotifyApiService.SpotifyCallback<List<Music>> {
             override fun onSuccess(result: List<Music>) {
+                // Check if fragment is still attached
+                if (!isAdded || isDetached) {
+                    Log.d("HomeFragment", "Fragment not attached, skipping popular week update")
+                    return
+                }
+
                 Log.d("HomeFragment", "✅ Popular this week loaded: ${result.size} items")
                 popularWeekAlbums = result
                 loadFriendsAlbums()
             }
             override fun onError(error: String) {
+                // Check if fragment is still attached
+                if (!isAdded || isDetached) {
+                    Log.d("HomeFragment", "Fragment not attached, skipping popular week error")
+                    return
+                }
+
                 Log.e("HomeFragment", "❌ Failed to load popular this week: $error")
                 popularWeekAlbums = getPopularMockData()
                 loadFriendsAlbums()
@@ -369,11 +405,23 @@ class HomeFragment : Fragment() {
 
         spotifyApiService.getFriendsAlbums(object : SpotifyApiService.SpotifyCallback<List<Music>> {
             override fun onSuccess(result: List<Music>) {
+                // Check if fragment is still attached
+                if (!isAdded || isDetached) {
+                    Log.d("HomeFragment", "Fragment not attached, skipping friends albums update")
+                    return
+                }
+
                 Log.d("HomeFragment", "✅ Friends albums loaded: ${result.size} items")
                 newReleasesAlbums = result
                 loadSimpleTrendingData()
             }
             override fun onError(error: String) {
+                // Check if fragment is still attached
+                if (!isAdded || isDetached) {
+                    Log.d("HomeFragment", "Fragment not attached, skipping friends albums error")
+                    return
+                }
+
                 Log.e("HomeFragment", "❌ Failed to load friends albums: $error")
                 newReleasesAlbums = getFriendsMockData()
                 loadSimpleTrendingData()
@@ -384,6 +432,12 @@ class HomeFragment : Fragment() {
     private fun loadSimpleTrendingData() {
         spotifyApiService.getSimpleTrendingMusic(object : SpotifyApiService.SpotifyCallback<List<Music>> {
             override fun onSuccess(result: List<Music>) {
+                // Check if fragment is still attached
+                if (!isAdded || isDetached) {
+                    Log.d("HomeFragment", "Fragment not attached, skipping trending update")
+                    return
+                }
+
                 Log.d("HomeFragment", "✅ Simple trending loaded: ${result.size} items")
                 trendingAlbums = result
                     .distinctBy { it.album }
@@ -394,6 +448,12 @@ class HomeFragment : Fragment() {
                 cacheTimestamp = System.currentTimeMillis()
             }
             override fun onError(error: String) {
+                // Check if fragment is still attached
+                if (!isAdded || isDetached) {
+                    Log.d("HomeFragment", "Fragment not attached, skipping trending error")
+                    return
+                }
+
                 Log.e("HomeFragment", "❌ Simple trending failed: $error")
                 loadArtistBasedTrending()
             }
@@ -406,6 +466,12 @@ class HomeFragment : Fragment() {
 
         spotifyApiService.searchMusic(randomArtist, object : SpotifyApiService.SpotifyCallback<List<Music>> {
             override fun onSuccess(result: List<Music>) {
+                // Check if fragment is still attached
+                if (!isAdded || isDetached) {
+                    Log.d("HomeFragment", "Fragment not attached, skipping artist trending update")
+                    return
+                }
+
                 Log.d("HomeFragment", "✅ Artist-based trending loaded: ${result.size} items")
                 trendingAlbums = result.distinctBy { it.album }.take(8)
                 populateAlbumSections()
@@ -413,6 +479,12 @@ class HomeFragment : Fragment() {
                 cacheTimestamp = System.currentTimeMillis()
             }
             override fun onError(error: String) {
+                // Check if fragment is still attached
+                if (!isAdded || isDetached) {
+                    Log.d("HomeFragment", "Fragment not attached, skipping artist trending error")
+                    return
+                }
+
                 Log.e("HomeFragment", "❌ All trending methods failed: $error")
                 trendingAlbums = getTrendingMockData()
                 populateAlbumSections()
@@ -486,7 +558,7 @@ class HomeFragment : Fragment() {
 
         menuPopup = PopupWindow(
             menuView,
-            dpToPx(280), // Call as regular method
+            dpToPx(280),
             ViewGroup.LayoutParams.MATCH_PARENT,
             true
         ).apply {
@@ -497,8 +569,6 @@ class HomeFragment : Fragment() {
         }
         setupMenuClickListeners(menuView)
     }
-
-
 
     private fun setupMenuClickListeners(menuView: View) {
         menuView.findViewById<View>(R.id.menu_popular).setOnClickListener {
@@ -562,6 +632,12 @@ class HomeFragment : Fragment() {
     }
 
     private fun populateAlbumSections() {
+        // Check if fragment is still attached
+        if (!isAdded || isDetached) {
+            Log.d("HomeFragment", "Fragment not attached, skipping populateAlbumSections")
+            return
+        }
+
         updateSectionTitles()
         popularWeekContainer.removeAllViews()
         newFriendsContainer.removeAllViews()
@@ -589,12 +665,24 @@ class HomeFragment : Fragment() {
     }
 
     private fun updateSectionTitles() {
-        popularWeekTitle.text = "Popular this week"
-        newFriendsTitle.text = "From friends"
-        trendingTitle.text = "Trending now"
+        // Check if fragment is still attached
+        if (!isAdded || isDetached) {
+            Log.d("HomeFragment", "Fragment not attached, skipping updateSectionTitles")
+            return
+        }
+
+        popularWeekTitle.text = getString(R.string.popular_this_week)
+        newFriendsTitle.text = getString(R.string.from_friends)
+        trendingTitle.text = getString(R.string.trending_now)
     }
 
     private fun createAlbumView(music: Music): View {
+        // Check if fragment is still attached
+        if (!isAdded || isDetached) {
+            Log.d("HomeFragment", "Fragment not attached, skipping createAlbumView")
+            return View(requireContext()) // Return empty view as fallback
+        }
+
         return ImageView(requireContext()).apply {
             layoutParams = LinearLayout.LayoutParams(
                 dpToPx(110),
@@ -606,7 +694,7 @@ class HomeFragment : Fragment() {
             background = resources.getDrawable(R.drawable.rounded_album, null)
 
             if (music.coverImage.isNotEmpty()) {
-                Glide.with(requireContext())
+                Glide.with(this@HomeFragment) // Use fragment context for proper lifecycle
                     .load(music.coverImage)
                     .placeholder(R.drawable.album_placeholder)
                     .error(R.drawable.album_placeholder)
@@ -632,6 +720,11 @@ class HomeFragment : Fragment() {
     }
 
     private fun showToast(message: String) {
+        // Check if fragment is still attached
+        if (!isAdded || isDetached) {
+            Log.d("HomeFragment", "Fragment not attached, skipping toast")
+            return
+        }
         android.widget.Toast.makeText(requireContext(), message, android.widget.Toast.LENGTH_SHORT).show()
     }
 

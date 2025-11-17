@@ -1,10 +1,10 @@
 package student.projects.musicreviewapp.ui.home
 
 import android.app.AlertDialog
-import android.content.Intent
+
 import android.net.Uri
 import android.os.Bundle
-import android.provider.MediaStore
+
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -31,14 +31,16 @@ import student.projects.musicreviewapp.auth.ReviewManager
 import student.projects.musicreviewapp.models.Music
 import student.projects.musicreviewapp.models.Review
 import student.projects.musicreviewapp.models.User
+import student.projects.musicreviewapp.network.LanguageManager
 
 class ProfileFragment : Fragment() {
     private lateinit var authManager: AuthManager
     private lateinit var favoriteAlbumsManager: FavoriteAlbumsManager
     private lateinit var reviewManager: ReviewManager
     private lateinit var playlistManager: PlaylistManager
-
     private lateinit var likeManager: LikeManager
+    private lateinit var languageManager: LanguageManager
+    private lateinit var listManager: ListManager
 
     private val favoritesAdapter = AlbumGridAdapter()
     private val recentActivityAdapter = RecentActivityAdapter()
@@ -77,6 +79,8 @@ class ProfileFragment : Fragment() {
         reviewManager = ReviewManager(requireContext())
         playlistManager = PlaylistManager(requireContext())
         likeManager = LikeManager(requireContext())
+        languageManager = LanguageManager(requireContext())
+        listManager = ListManager(requireContext())
 
         setupViews(view)
         setupProfileStats(view)
@@ -98,7 +102,7 @@ class ProfileFragment : Fragment() {
             adapter = recentActivityAdapter
         }
 
-        // Set click listeners for adapters - UPDATED THIS PART
+        // Set click listeners for adapters
         favoritesAdapter.onAlbumClick = { music ->
             navigateToAlbumDetail(music)
         }
@@ -123,7 +127,6 @@ class ProfileFragment : Fragment() {
         }
     }
 
-    // ADD THIS METHOD TO NAVIGATE TO ALBUM DETAILS
     private fun navigateToAlbumDetail(music: Music) {
         val bundle = Bundle().apply {
             putParcelable("album", music)
@@ -135,7 +138,6 @@ class ProfileFragment : Fragment() {
         val bundle = Bundle().apply {
             putParcelable("review", review)
         }
-        // Use the existing action from user reviews fragment
         findNavController().navigate(R.id.action_userReviewsFragment_to_reviewDetailFragment, bundle)
     }
 
@@ -152,6 +154,7 @@ class ProfileFragment : Fragment() {
         view.findViewById<TextView>(R.id.current_bio)?.text = currentBio
         view.findViewById<TextView>(R.id.current_pronoun)?.text = currentPronoun
         view.findViewById<TextView>(R.id.current_url)?.text = currentUrl
+        view.findViewById<TextView>(R.id.current_language)?.text = languageManager.getCurrentLanguageDisplayName()
 
         // Close button
         view.findViewById<ImageView>(R.id.close_button)?.setOnClickListener {
@@ -205,6 +208,11 @@ class ProfileFragment : Fragment() {
             }
         }
 
+        // Language option
+        view.findViewById<View>(R.id.language_option)?.setOnClickListener {
+            showLanguageDialog()
+        }
+
         // Favorite Albums option
         view.findViewById<View>(R.id.favorite_albums_option)?.setOnClickListener {
             dialog.dismiss()
@@ -216,6 +224,27 @@ class ProfileFragment : Fragment() {
             dialog.dismiss()
             showChangeAvatarDialog()
         }
+    }
+
+    private fun showLanguageDialog() {
+        val languages = languageManager.getAvailableLanguages()
+        val languageNames = languages.map { it.nativeName }.toTypedArray()
+        val currentLanguage = languageManager.getCurrentLanguage()
+
+        val currentIndex = languages.indexOfFirst { it.code == currentLanguage }
+
+        AlertDialog.Builder(requireContext())
+            .setTitle(getString(R.string.select_language))
+            .setSingleChoiceItems(languageNames, currentIndex) { dialog, which ->
+                val selectedLanguage = languages[which]
+                languageManager.setLanguage(selectedLanguage.code)
+
+                // Immediately recreate the activity to apply language changes
+                activity?.recreate()
+                dialog.dismiss()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun showEditDialog(title: String, currentValue: String, onSave: (String) -> Unit) {
@@ -351,17 +380,10 @@ class ProfileFragment : Fragment() {
 
     private fun updateProfileStats(view: View) {
         // Get real data from managers
-        val reviewManager = ReviewManager(requireContext())
-        val favoriteAlbumsManager = FavoriteAlbumsManager(requireContext())
-        val playlistManager = PlaylistManager(requireContext())
-        val listManager = ListManager(requireContext())
-        val likeManager = LikeManager(requireContext())
-
         val reviewCount = reviewManager.getReviews().size
         val favoriteCount = favoriteAlbumsManager.getFavoriteAlbums().size
         val playlistCount = playlistManager.getPlaylist().size
         val actualListCount = listManager.getLists().size
-        val currentYear = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)
 
         // Calculate actual likes count
         val likedAlbumsCount = likeManager.getLikedAlbums().size
@@ -375,19 +397,11 @@ class ProfileFragment : Fragment() {
         view.findViewById<TextView>(R.id.reviews_count)?.text = reviewCount.toString()
         view.findViewById<TextView>(R.id.lists_count)?.text = actualListCount.toString()
         view.findViewById<TextView>(R.id.playlists_count)?.text = playlistCount.toString()
-        view.findViewById<TextView>(R.id.likes_count)?.text = totalLikesCount.toString() //
+        view.findViewById<TextView>(R.id.likes_count)?.text = totalLikesCount.toString()
     }
 
     private fun navigateToFavoriteAlbumsManager() {
         findNavController().navigate(R.id.action_profileFragment_to_favoriteAlbumsFragment)
-    }
-
-    private fun navigateToComingSoon(feature: String) {
-        android.app.AlertDialog.Builder(requireContext())
-            .setTitle("$feature Feature")
-            .setMessage("This feature is coming soon!")
-            .setPositiveButton("OK", null)
-            .show()
     }
 
     private fun loadProfileData() {
@@ -456,10 +470,10 @@ class ProfileFragment : Fragment() {
         )
     }
 
-    // UPDATED AlbumGridAdapter - Changed to pass Music object instead of just ID
+    // AlbumGridAdapter
     class AlbumGridAdapter : RecyclerView.Adapter<AlbumGridAdapter.AlbumViewHolder>() {
         private var albums = listOf<Music>()
-        var onAlbumClick: ((Music) -> Unit)? = null // Changed from (String) -> Unit to (Music) -> Unit
+        var onAlbumClick: ((Music) -> Unit)? = null
 
         class AlbumViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             val albumCover: ImageView = itemView.findViewById(R.id.album_cover)
@@ -510,7 +524,7 @@ class ProfileFragment : Fragment() {
             }
 
             holder.itemView.setOnClickListener {
-                onAlbumClick?.invoke(album) // Now passing the full Music object
+                onAlbumClick?.invoke(album)
             }
         }
 
@@ -522,7 +536,7 @@ class ProfileFragment : Fragment() {
         }
     }
 
-    // RecentActivityAdapter (unchanged)
+    // RecentActivityAdapter
     class RecentActivityAdapter : RecyclerView.Adapter<RecentActivityAdapter.RecentActivityViewHolder>() {
         private var reviews = listOf<Review>()
         var onReviewClick: ((Review) -> Unit)? = null
