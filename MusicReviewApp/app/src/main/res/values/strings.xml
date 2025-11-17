@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">MusicReviewApp</string>
     <string name="album_poster">Album poster</string>
     <string name="back">Back</string>
@@ -187,4 +187,6 @@
     <string name="search">Search</string>
     <string name="from_friends">From friends</string>
     <string name="trending_now">Trending now</string>
+    <string name="sign_in_with_google">Google Sign In</string>
+    <string name="default_web_client_id">502839598328-lt7od3ekspqg5jdcvt9rpa08825llimp.apps.googleusercontent.com</string>
 </resources>

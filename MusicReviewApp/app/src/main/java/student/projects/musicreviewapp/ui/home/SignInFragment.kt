@@ -1,5 +1,6 @@
 package student.projects.musicreviewapp.ui.home
 
+import android.content.Intent
 import android.os.Bundle
 import android.text.SpannableString
 import android.text.Spanned
@@ -10,15 +11,21 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.GoogleAuthProvider
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
 import student.projects.musicreviewapp.R
-import student.projects.musicreviewapp.auth.SignInWithGoogle
 import java.util.concurrent.Executor
 
 class SignInFragment : Fragment() {
@@ -27,7 +34,22 @@ class SignInFragment : Fragment() {
     private lateinit var executor: Executor
     private lateinit var biometricPrompt: BiometricPrompt
     private lateinit var promptInfo: BiometricPrompt.PromptInfo
-    private lateinit var googleSignInView: SignInWithGoogle
+    private lateinit var googleSignInClient: GoogleSignInClient
+
+    private val googleSignInLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+            try {
+                val account = task.getResult(ApiException::class.java)!!
+                val credential = GoogleAuthProvider.getCredential(account.idToken, null)
+                auth.signInWithCredential(credential).addOnCompleteListener { task2 ->
+                    if (task2.isSuccessful) navigateToHome()
+                    else showToast(task2.exception?.message ?: "Google Sign-In failed")
+                }
+            } catch (e: ApiException) {
+                showToast("Google Sign-In failed: ${e.statusCode}")
+            }
+        }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -64,14 +86,21 @@ class SignInFragment : Fragment() {
             .build()
 
         val backButton = view.findViewById<View>(R.id.back_button)
-        val signInButton = view.findViewById<com.google.android.material.button.MaterialButton>(R.id.sign_in_button)
-        val biometricButton = view.findViewById<com.google.android.material.button.MaterialButton>(R.id.biometric_button)
+        val signInButton = view.findViewById<MaterialButton>(R.id.sign_in_button)
+        val biometricButton = view.findViewById<MaterialButton>(R.id.biometric_button)
+        val googleButton = view.findViewById<MaterialButton>(R.id.google_sign_in_button)
         val emailEditText = view.findViewById<TextInputEditText>(R.id.email_edit_text)
         val passwordEditText = view.findViewById<TextInputEditText>(R.id.password_edit_text)
         val signUpLink = view.findViewById<TextView>(R.id.sign_up_link)
-        googleSignInView = view.findViewById(R.id.google_sign_in_view)
+
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken("502839598328-lt7od3ekspqg5jdcvt9rpa08825llimp.apps.googleusercontent.com")
+            .requestEmail()
+            .build()
+        googleSignInClient = GoogleSignIn.getClient(requireContext(), gso)
 
         backButton.setOnClickListener { findNavController().popBackStack() }
+
         signInButton.setOnClickListener {
             val email = emailEditText.text.toString()
             val password = passwordEditText.text.toString()
@@ -89,9 +118,12 @@ class SignInFragment : Fragment() {
             BiometricManager.BIOMETRIC_SUCCESS
         ) biometricButton.visibility = View.GONE
 
+        googleButton.setOnClickListener {
+            val signInIntent = googleSignInClient.signInIntent
+            googleSignInLauncher.launch(signInIntent)
+        }
+
         setupSignUpLink(signUpLink)
-        googleSignInView.onGoogleSignInSuccess = { navigateToHome() }
-        googleSignInView.onGoogleSignInFailure = { showToast(it) }
     }
 
     private fun setupSignUpLink(textView: TextView) {

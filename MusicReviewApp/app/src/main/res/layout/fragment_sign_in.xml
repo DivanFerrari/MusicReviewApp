@@ -74,7 +74,6 @@
                 android:inputType="text"
                 android:textSize="16sp"
                 android:padding="16dp" />
-
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
@@ -105,7 +104,6 @@
                 android:inputType="textPassword"
                 android:textSize="16sp"
                 android:padding="16dp" />
-
         </com.google.android.material.textfield.TextInputLayout>
 
         <TextView
@@ -153,10 +151,20 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
-        <student.projects.musicreviewapp.auth.SignInWithGoogle
-            android:id="@+id/google_sign_in_view"
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/google_sign_in_button"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="56dp"
+            android:text="@string/sign_in_with_google"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:backgroundTint="@color/white"
+            android:textColor="#FF86739E"
+            app:strokeColor="#FF86739E"
+            app:strokeWidth="1dp"
+            app:cornerRadius="28dp"
+            android:drawableStart="@drawable/ic_google"
+            android:drawablePadding="8dp"
             android:layout_marginTop="16dp"
             app:layout_constraintTop_toBottomOf="@id/biometric_button"
             app:layout_constraintStart_toStartOf="parent"
@@ -169,7 +177,7 @@
             android:layout_marginTop="16dp"
             android:textColor="@color/black"
             android:textSize="14sp"
-            app:layout_constraintTop_toBottomOf="@id/google_sign_in_view"
+            app:layout_constraintTop_toBottomOf="@id/google_sign_in_button"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
