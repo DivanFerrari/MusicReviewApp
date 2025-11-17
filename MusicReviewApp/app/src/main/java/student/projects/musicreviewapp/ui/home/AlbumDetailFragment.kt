@@ -63,7 +63,7 @@ class AlbumDetailFragment : Fragment() {
         spotifyApiService = SpotifyApiService(requireContext())
         playlistManager = PlaylistManager(requireContext())
         reviewManager = ReviewManager(requireContext())
-        authManager = AuthManager(requireContext())
+        authManager = AuthManager()
         listManager = ListManager(requireContext())
         likeManager = LikeManager(requireContext())
         return inflater.inflate(R.layout.fragment_album_detail, container, false)

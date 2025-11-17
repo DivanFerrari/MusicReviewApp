@@ -56,7 +56,7 @@ class LikesFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        authManager = AuthManager(requireContext())
+        authManager = AuthManager()
         likeManager = LikeManager(requireContext())
         reviewManager = ReviewManager(requireContext())
         listManager = ListManager(requireContext())

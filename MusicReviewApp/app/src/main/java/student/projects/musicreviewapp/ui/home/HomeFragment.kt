@@ -72,7 +72,7 @@ class HomeFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        authManager = AuthManager(requireContext())
+        authManager = AuthManager()
         spotifyApiService = SpotifyApiService(requireContext())
         reviewManager = ReviewManager(requireContext())
         listManager = ListManager(requireContext())

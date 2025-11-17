@@ -42,7 +42,7 @@ class ReviewFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         reviewManager = ReviewManager(requireContext())
-        authManager = AuthManager(requireContext())
+        authManager = AuthManager()
         return inflater.inflate(R.layout.fragment_review, container, false)
     }
 

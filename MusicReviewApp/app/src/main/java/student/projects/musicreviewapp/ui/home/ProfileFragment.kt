@@ -74,7 +74,7 @@ class ProfileFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         // Initialize all managers first
-        authManager = AuthManager(requireContext())
+        authManager = AuthManager()
         favoriteAlbumsManager = FavoriteAlbumsManager(requireContext())
         reviewManager = ReviewManager(requireContext())
         playlistManager = PlaylistManager(requireContext())
